@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="cart.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <style>
+        /* Error message styling */
+        .error-message {
+            color: red;
+            display: none; /* Hide by default */
+            font-size: 14px;
+        }
+
+        /* Red border styling for empty fields */
+        .error-border {
+            border: 2px solid red;
+        }
+
+        /* Empty cart message styling */
+        .empty-cart {
+            text-align: center;
+            font-size: 18px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <div id="i">
+            <h1>Shopping Cart</h1>
+        </div>
+        <img src="img/Screenshot_2024-11-08_162831.png" onclick="window.location.href='index.html'" class="water">
+
+        <!-- Cart lessons Section -->
+        <div class="container">
+            <div v-if="cartlessons.length">
+                <div v-for="(lesson, index) in cartlessons" :key="index" class="lesson">
+                    <div id="pic">
+                        <img :src="lesson.picture" alt="lesson Image" class="pic1">
+                    </div>
+                    <div class="text">
+                        <div class="move">
+                            <p>Subject: {{ lesson.Subject }}</p>
+                            <p>Location: {{ lesson.Location }}</p>
+                            <p>Price: {{ lesson.Price }}</p>
+                            <p>Available: {{ lesson.Available }}</p>
+                            <button @click="removeFromCart(index)" class="carts">
+                                <img src="img/Screenshot_2024-11-08_012656.png" alt="Cart Icon" class="icon">
+                                <span class="box">Remove</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Empty Cart Message -->
+            <div v-else class="empty-cart">
+                Your cart is empty.
+            </div>
+        </div>
+
+        <!-- Checkout Form -->
+        <div id="labels">
+            <input 
+                type="text" 
+                v-model="name" 
+                @input="validateName" 
+                class="username" 
+                placeholder="Enter your Name">
+            <p v-if="nameError" class="error-message">Please enter a valid name.</p>
+
+            <input 
+                type="text" 
+                v-model="phone" 
+                @input="validatePhone" 
+                class="username" 
+                placeholder="Enter your Phone number">
+            <p v-if="phoneError" class="error-message">Please enter a valid phone number.</p>
+        </div>
+
+        <!-- Checkout Button -->
+        <button @click="checkout" id="button">Checkout</button>
+    </div>
+
+    <!-- Vue and Cart Functionality -->
+    <script src="https://unpkg.com/vue@3.0.5/dist/vue.global.js"></script>
+    <script>
+        const cartApp = Vue.createApp({
+            data() {
+                return {
+                    cartlessons: [], // Holds cart lessons
+                    name: '',
+                    phone: '',
+                    nameError: false,
+                    phoneError: false,
+                };
+            },
+            created() {
+                this.clearCartOnRefresh(); // Clear cart on page load
+                this.loadCart();
+            },
+            methods: {
+                clearCartOnRefresh() {
+                    // This clears the cart from localStorage and Vue on page load
+                    localStorage.removelesson('cart');
+                    this.cartlessons = [];
+                },
+                loadCart() {
+                    // Normally, you would load the cart from localStorage if you want persistent cart data,
+                    // but for this case, we clear it on load, so no cart is loaded
+                },
+                removeFromCart(index) {
+                    // Remove an lesson from the cart
+                    this.cartlessons.splice(index, 1);
+                    localStorage.setlesson('cart', JSON.stringify(this.cartlessons)); // Update localStorage
+                },
+                validateName() {
+                    // Validate name field (letters and spaces only)
+                    const nameRegex = /^[A-Za-z\s]+$/;
+                    this.nameError = !nameRegex.test(this.name.trim());
+                },
+                validatePhone() {
+                    // Validate phone field (numbers only)
+                    const phoneRegex = /^[0-9]+$/;
+                    this.phoneError = !phoneRegex.test(this.phone.trim());
+                },
+                checkout() {
+                    // Validate form
+                    this.validateName();
+                    this.validatePhone();
+
+                    if (this.nameError || this.phoneError) {
+                        alert("Please correct the errors in the form.");
+                        return;
+                    }
+
+                    if (this.cartlessons.length === 0) {
+                        alert("Your cart is empty. Add lessons to proceed.");
+                        return;
+                    }
+
+                    // Simulate checkout process
+                    alert("Checkout successful! Thank you for your purchase.");
+                    this.clearCart();
+                },
+                clearCart() {
+                    // Clear the cart
+                    this.cartlessons = [];
+                    localStorage.removelesson('cart'); // Remove from localStorage
+                },
+            },
+        });
+
+        cartApp.mount('#app');
+    </script>
+</body>
+</html>
+{ id: 1, picture: './img/Maths.jpg', Subject: 'Maths', Location: 'Manchester', Price: '£100', Available: 5 },
+                { id: 2, picture: './img/English.jpg', Subject: 'English', Location: 'Manchester', Price: '£130', Available: 7 },
+                { id: 3, picture: './img/Geography.jpg', Subject: 'Geography', Location: 'Edgware', Price: '£10', Available: 10 },
+                { id: 4, picture: './img/Science.jpg', Subject: 'Science', Location: 'Cricklewood', Price: '£120', Available: 8 },
+                { id: 5, picture: './img/Art.jpg', Subject: 'Art', Location: 'Tottenham', Price: '£20', Available: 12 },
+                { id: 6, picture: './img/Geography.jpg', Subject: 'Math', Location: 'Nottingham', Price: '£107', Available: 6 },
+                { id: 7, picture: './img/P.E.jpg', Subject: 'P.E', Location: 'Liverpool', Price: '£130', Available: 9 },
+                { id: 8, picture: './img/COMPUTING.jpg', Subject: 'Computing', Location: 'Bradford', Price: '£110', Available: 19 },
+                { id: 9, picture: './img/hisory.jpg', Subject: 'History', Location: 'Coventry', Price: '£102', Available: 20 },
+            ],
