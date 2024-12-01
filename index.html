@@ -30,12 +30,15 @@
                 placeholder="Search for lessons..." 
                 class="search-bar"
             />
+
             <button 
             @click="togglePage(currentPage === 'shop' ? 'cart' : 'shop')" 
             :disabled="cartLessons.length === 0 && currentPage === 'shop'" 
             class="cart-button">
             {{ currentPage === 'shop' ? 'Cart (' + cartItemCount + ')' : 'Back to Homepage' }}
         </button>
+        
+        
         
         </div>
 
@@ -111,11 +114,14 @@
                 };
             },
 
+            
             computed: {
-    cartItemCount() {
+                cartItemCount() {
+        // Calculate the total number of items in the cart
         return this.cartLessons.reduce((total, lesson) => total + lesson.quantity, 0);
     },
     filteredLessons() {
+        // Filter and sort logic for lessons (already provided in your code)
         let sortedLessons = [...this.lessons];
         const sortBy = {
             option2: "Subject",
@@ -124,18 +130,14 @@
             option5: "Available"
         }[this.selectedFilter];
 
-        // Sort the lessons based on selected filter
         sortedLessons.sort((a, b) =>
             this.sortDirection === "asc"
                 ? (a[sortBy] > b[sortBy] ? 1 : -1)
                 : (a[sortBy] < b[sortBy] ? 1 : -1)
         );
 
-        // Filter lessons based on search query
         return sortedLessons.filter(lesson => {
             const query = this.searchQuery.toLowerCase();
-
-            // Check if search query matches subject, location, price, or available fields
             return (
                 lesson.Subject.toLowerCase().includes(query) ||
                 lesson.Location.toLowerCase().includes(query) ||
@@ -144,8 +146,19 @@
             );
         });
     },
+
+    watch: {
+    searchQuery(newQuery) {
+        this.fetchLessons(); // Fetch lessons whenever searchQuery changes
+    }
+}
+
+
+    
+
+    
 },
-          methods: {
+            methods: {
 
                 removeFromCart(index) {
     const lesson = this.cartLessons[index];
@@ -237,7 +250,7 @@ methods: {
         const query = this.searchQuery.trim();
         const url = query ? 
             `https://back-end-ugui.onrender.com/search?query=${query}` :
-            `https://back-end-ugui.onrender.com/api/lessons`; // or whatever the endpoint is for fetching all lessons
+            `https://back-end-ugui.onrender.com/api/lessons`; 
 
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch search results");
