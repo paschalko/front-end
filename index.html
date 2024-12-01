@@ -30,13 +30,13 @@
                 placeholder="Search for lessons..." 
                 class="search-bar"
             />
-
             <button 
-                @click="togglePage(currentPage === 'shop' ? 'cart' : 'shop')" 
-                :disabled="cartLessons.length === 0 && currentPage === 'shop'" 
-                class="cart-button">
-                Cart ({{ cartItemCount }})
-            </button>
+            @click="togglePage(currentPage === 'shop' ? 'cart' : 'shop')" 
+            :disabled="cartLessons.length === 0 && currentPage === 'shop'" 
+            class="cart-button">
+            {{ currentPage === 'shop' ? 'Cart (' + cartItemCount + ')' : 'Back to Homepage' }}
+        </button>
+        
         </div>
 
         <div v-if="currentPage === 'shop'">
@@ -110,33 +110,104 @@
                     searchQuery: "",
                 };
             },
+
             computed: {
-                filteredLessons() {
-                    let sortedLessons = [...this.lessons];
-                    const sortBy = {
-                        option2: "Subject",
-                        option3: "Location",
-                        option4: "Price",
-                        option5: "Available"
-                    }[this.selectedFilter];
+    cartItemCount() {
+        return this.cartLessons.reduce((total, lesson) => total + lesson.quantity, 0);
+    },
+    filteredLessons() {
+        let sortedLessons = [...this.lessons];
+        const sortBy = {
+            option2: "Subject",
+            option3: "Location",
+            option4: "Price",
+            option5: "Available"
+        }[this.selectedFilter];
+
+        // Sort the lessons based on selected filter
+        sortedLessons.sort((a, b) =>
+            this.sortDirection === "asc"
+                ? (a[sortBy] > b[sortBy] ? 1 : -1)
+                : (a[sortBy] < b[sortBy] ? 1 : -1)
+        );
+
+        // Filter lessons based on search query
+        return sortedLessons.filter(lesson => {
+            const query = this.searchQuery.toLowerCase();
+
+            // Check if search query matches subject, location, price, or available fields
+            return (
+                lesson.Subject.toLowerCase().includes(query) ||
+                lesson.Location.toLowerCase().includes(query) ||
+                lesson.Price.toString().includes(query) ||
+                lesson.Available.toString().includes(query)
+            );
+        });
+    },
+},
+          methods: {
+
+                removeFromCart(index) {
+    const lesson = this.cartLessons[index];
+    
+    // Decrease the quantity in the cart
+    if (lesson.quantity > 1) {
+        lesson.quantity--;
+    } else {
+        // If the quantity becomes 0, remove the lesson from the cart
+        this.cartLessons.splice(index, 1);
+    }
+
+    // Find the corresponding lesson in the original lessons array
+    const originalLesson = this.lessons.find((item) => item._id === lesson._id);
+
+    // Increase the availability of the lesson
+    if (originalLesson) {
+        originalLesson.Available++;
+    }
+},
 
 
-                    
-                    sortedLessons.sort((a, b) =>
-                        this.sortDirection === "asc "
-                            ? (a[sortBy] > b[sortBy] ? 1 : -1)
-                            : (a[sortBy] < b[sortBy] ? 1 : -1)
-                    );
-
-                    return sortedLessons.filter(lesson =>
-                        lesson.Subject.toLowerCase().includes(this.searchQuery.toLowerCase())
-                    );
+methods: {
+    async updateLessonAvailability(lessonId, newAvailability) {
+        try {
+            const response = await fetch(`https://back-end-ugui.onrender.com/api/lessons/${lessonId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-                cartItemCount() {
-                    return this.cartLessons.reduce((total, lesson) => total + lesson.quantity, 0);
-                },
-            },
-            methods: {
+                body: JSON.stringify({
+                    Available: newAvailability, // The new availability value
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update availability");
+            }
+
+            const result = await response.json();
+            console.log("Lesson availability updated:", result.message);
+        } catch (error) {
+            console.error("Error updating lesson availability:", error);
+        }
+    },
+
+    addLessonToCart(lesson) {
+        const existingItem = this.cartLessons.find((item) => item._id === lesson._id);
+        if (existingItem) {
+            existingItem.quantity++;
+        } else {
+            this.cartLessons.push({ ...lesson, quantity: 1 });
+        }
+
+        // Decrease the availability in the frontend
+        lesson.Available--;
+
+        // Update the availability on the backend
+        this.updateLessonAvailability(lesson._id, lesson.Available);
+    },
+},
+
                 addLessonToCart(lesson) {
                     const existingItem = this.cartLessons.find((item) => item._id === lesson._id);
                     if (existingItem) {
@@ -145,12 +216,8 @@
                         this.cartLessons.push({ ...lesson, quantity: 1 });
                     }
                     lesson.Available--;
-                },
-                removeFromCart(index) {
-                    const lesson = this.cartLessons[index];
-                    this.cartLessons.splice(index, 1);
-                    const originalLesson = this.lessons.find((item) => item._id === lesson._id);
-                    if (originalLesson) originalLesson.Available += lesson.quantity;
+                
+            
                 },
                 toggleSortDirection() {
                     this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
@@ -165,14 +232,24 @@
                     this.phoneError = !/^\d{10}$/.test(this.phone);
                 },
                 async fetchLessons() {
-                    try {
-                        const response = await fetch("https://back-end-ugui.onrender.com/api/lessons");
-                        if (!response.ok) throw new Error("Failed to fetch lessons");
-                        this.lessons = await response.json();
-                    } catch (error) {
-                        console.error("Error fetching lessons:", error);
-                    }
-                },
+    try {
+        // Only search if there's a query, otherwise fetch all lessons
+        const query = this.searchQuery.trim();
+        const url = query ? 
+            `https://back-end-ugui.onrender.com/search?query=${query}` :
+            `https://back-end-ugui.onrender.com/api/lessons`; // or whatever the endpoint is for fetching all lessons
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch search results");
+
+        // If the response is empty, keep the existing lessons or set it to an empty array
+        const lessonsData = await response.json();
+        this.lessons = lessonsData.length ? lessonsData : [];
+    } catch (error) {
+        console.error("Error fetching lessons:", error);
+    }
+},
+
                 async submitOrder() {
                     const order = {
                         lessons: this.cartLessons,
@@ -196,6 +273,7 @@
                     }
                 },
             },
+            
             created() {
                 this.fetchLessons();
             },
