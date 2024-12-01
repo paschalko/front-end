@@ -1,170 +1,263 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="cart.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart</title>
+    <title>Shopping Page</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inria+Serif:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+
     <style>
-        /* Error message styling */
-        .error-message {
-            color: red;
-            display: none; /* Hide by default */
-            font-size: 14px;
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* Red border styling for empty fields */
-        .error-border {
-            border: 2px solid red;
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-top: 20px;
         }
 
-        /* Empty cart message styling */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px;
+        }
+
+        .lesson {
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 250px;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .lesson-img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        button {
+            background-color: #2a9d8f;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
         .empty-cart {
             text-align: center;
             font-size: 18px;
             color: #555;
         }
+
+        .cart-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .back-button {
+            background-color: #555;
+            color: white;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
-<body>
-    <div id="app">
-        <!-- Header -->
-        <div id="i">
-            <h1>Shopping Cart</h1>
+<body id="app">
+    <div>
+        <!-- Header with toggle buttons -->
+        <div v-if="showHeader">
+            <h1>
+             <!--   <img src="img/logo.png" alt="Logo" class="logo">-->
+                HOLLAND PARK PRIMARY SCHOOL
+            </h1>
+            <select class="filter" v-model="selectedFilter">
+                <option value="option2">Subject</option>
+                <option value="option3">Location</option>
+                <option value="option4">Price</option>
+                <option value="option5">Available</option>
+            </select>
+            <button @click="toggleSortDirection" class="sort-toggle">
+                Sort: {{ sortDirection === 'asc' ? 'Ascending' : 'Descending' }}
+            </button>
+            <button @click="togglePage('cart')" :disabled="cartLessons.length === 0" class="cart-button">
+              <!--  <img src="img/cart.png" alt="Cart Icon" class="icon"> -->
+                <span>Cart</span>
+            </button>
         </div>
-        <img src="img/Screenshot_2024-11-08_162831.png" onclick="window.location.href='index.html'" class="water">
 
-        <!-- Cart lessons Section -->
-        <div class="container">
-            <div v-if="cartlessons.length">
-                <div v-for="(lesson, index) in cartlessons" :key="index" class="lesson">
-                    <div id="pic">
-                        <img :src="lesson.picture" alt="lesson Image" class="pic1">
-                    </div>
-                    <div class="text">
-                        <div class="move">
-                            <p>Subject: {{ lesson.Subject }}</p>
-                            <p>Location: {{ lesson.Location }}</p>
-                            <p>Price: {{ lesson.Price }}</p>
-                            <p>Available: {{ lesson.Available }}</p>
-                            <button @click="removeFromCart(index)" class="carts">
-                                <img src="img/Screenshot_2024-11-08_012656.png" alt="Cart Icon" class="icon">
-                                <span class="box">Remove</span>
-                            </button>
-                        </div>
-                    </div>
+        <!-- Shop Page -->
+        <div v-if="currentPage === 'shop'">
+            <div class="container">
+                <div v-for="lesson in filteredLessons" :key="lesson.id" class="lesson">
+                    <img :src="lesson.picture" alt="Lesson Image" class="lesson-img">
+                    <p>Subject: {{ lesson.Subject }}</p>
+                    <p>Location: {{ lesson.Location }}</p>
+                    <p>Price: {{ lesson.Price }}</p>
+                    <p>Available: {{ lesson.Available }}</p>
+                    <button 
+                        @click="addLessonToCart(lesson)" 
+                        :disabled="lesson.Available === 0">
+                        {{ lesson.Available === 0 ? 'Out of Stock' : 'Add to Cart' }}
+                    </button>
                 </div>
             </div>
-            <!-- Empty Cart Message -->
+        </div>
+
+        <!-- Cart Page -->
+        <div v-if="currentPage === 'cart'">
+            <h1>Shopping Cart</h1>
+            <button @click="togglePage('shop')" class="back-button">Back to Shop</button>
+            <div v-if="cartLessons.length > 0">
+                <div v-for="(lesson,lessons) in cartLessons" :key="lesson.id" class="lesson">
+                    <img :src="lesson.picture" alt="Lesson Image" class="lesson-img">
+                    <p>Subject: {{ lesson.Subject }}</p>
+                    <p>Location: {{ lesson.Location }}</p>
+                    <p>Price: #{{ lesson.Price }}</p>
+                    <p>Quantity: {{ lesson.quantity }}</p>
+                    <button @click="removeFromCart(index)">Remove</button>
+                </div>
+            </div>
+            <button @click="submitOrder" :disabled="cartLessons.length === 0">Submit Order</button>
             <div v-else class="empty-cart">
                 Your cart is empty.
             </div>
         </div>
-
-        <!-- Checkout Form -->
-        <div id="labels">
-            <input 
-                type="text" 
-                v-model="name" 
-                @input="validateName" 
-                class="username" 
-                placeholder="Enter your Name">
-            <p v-if="nameError" class="error-message">Please enter a valid name.</p>
-
-            <input 
-                type="text" 
-                v-model="phone" 
-                @input="validatePhone" 
-                class="username" 
-                placeholder="Enter your Phone number">
-            <p v-if="phoneError" class="error-message">Please enter a valid phone number.</p>
-        </div>
-
-        <!-- Checkout Button -->
-        <button @click="checkout" id="button">Checkout</button>
     </div>
 
-    <!-- Vue and Cart Functionality -->
-    <script src="https://unpkg.com/vue@3.0.5/dist/vue.global.js"></script>
     <script>
-        const cartApp = Vue.createApp({
+        Vue.createApp({
             data() {
                 return {
-                    cartlessons: [], // Holds cart lessons
-                    name: '',
-                    phone: '',
-                    nameError: false,
-                    phoneError: false,
+                    lessons: [], // Holds the lessons data fetched from the server
+                    cartLessons: [], // Lessons added to the cart
+                    selectedFilter: "option2", // Default filter selection
+                    sortDirection: "asc", // Sort direction: ascending or descending
+                    currentPage: "shop", // Tracks current page ('shop' or 'cart')
+                    showHeader: true, // Show or hide header
                 };
             },
-            created() {
-                this.clearCartOnRefresh(); // Clear cart on page load
-                this.loadCart();
+            computed: {
+                filteredLessons() {
+                    let sortedLessons = [...this.lessons];
+    
+                    if (this.selectedFilter === "option2") {
+                        sortedLessons.sort((a, b) =>
+                            this.sortDirection === "asc"
+                                ? a.Subject.localeCompare(b.Subject)
+                                : b.Subject.localeCompare(a.Subject)
+                        );
+                    } else if (this.selectedFilter === "option3") {
+                        sortedLessons.sort((a, b) =>
+                            this.sortDirection === "asc"
+                                ? a.Location.localeCompare(b.Location)
+                                : b.Location.localeCompare(a.Location)
+                        );
+                    } else if (this.selectedFilter === "option4") {
+                        sortedLessons.sort((a, b) =>
+                            this.sortDirection === "asc" ? a.Price - b.Price : b.Price - a.Price
+                        );
+                    } else if (this.selectedFilter === "option5") {
+                        sortedLessons.sort((a, b) =>
+                            this.sortDirection === "asc" ? a.Available - b.Available : b.Available - a.Available
+                        );
+                    }
+                    console.log(sortedLessons);
+                    return sortedLessons;
+                },
             },
             methods: {
-                clearCartOnRefresh() {
-                    // This clears the cart from localStorage and Vue on page load
-                    localStorage.removelesson('cart');
-                    this.cartlessons = [];
+                async fetchLessons() {
+                    try {
+                        const response = await fetch("http://localhost:3000/api/lessons");
+                        const data = await response.json();
+                        console.log("Fetched Lessons:", data); // Check if data is received
+                        this.lessons = data;
+                    } catch (error) {
+                        console.error("Error fetching lessons:", error);
+                    }
                 },
-                loadCart() {
-                    // Normally, you would load the cart from localStorage if you want persistent cart data,
-                    // but for this case, we clear it on load, so no cart is loaded
+    
+                addLessonToCart(lesson) {
+                    const existingItem = this.cartLessons.find((item) => item.id === lesson.id);
+                    if (existingItem) {
+                        existingItem.quantity += 1;
+                    } else {
+                        this.cartLessons.push({ ...lesson, quantity: 1 });
+                    }
+                    lesson.Available -= 1;
                 },
+    
                 removeFromCart(index) {
-                    // Remove an lesson from the cart
-                    this.cartlessons.splice(index, 1);
-                    localStorage.setlesson('cart', JSON.stringify(this.cartlessons)); // Update localStorage
-                },
-                validateName() {
-                    // Validate name field (letters and spaces only)
-                    const nameRegex = /^[A-Za-z\s]+$/;
-                    this.nameError = !nameRegex.test(this.name.trim());
-                },
-                validatePhone() {
-                    // Validate phone field (numbers only)
-                    const phoneRegex = /^[0-9]+$/;
-                    this.phoneError = !phoneRegex.test(this.phone.trim());
-                },
-                checkout() {
-                    // Validate form
-                    this.validateName();
-                    this.validatePhone();
-
-                    if (this.nameError || this.phoneError) {
-                        alert("Please correct the errors in the form.");
-                        return;
+                    const lesson = this.cartLessons[index];
+                    this.cartLessons.splice(index, 1);
+                    const originalLesson = this.lessons.find((item) => item.id === lesson.id);
+                    if (originalLesson) {
+                        originalLesson.Available += lesson.quantity;
                     }
-
-                    if (this.cartlessons.length === 0) {
-                        alert("Your cart is empty. Add lessons to proceed.");
-                        return;
-                    }
-
-                    // Simulate checkout process
-                    alert("Checkout successful! Thank you for your purchase.");
-                    this.clearCart();
                 },
-                clearCart() {
-                    // Clear the cart
-                    this.cartlessons = [];
-                    localStorage.removelesson('cart'); // Remove from localStorage
+    
+                toggleSortDirection() {
+                    this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
+                },
+    
+                togglePage(page) {
+                    this.currentPage = page;
+                },
+    
+                async submitOrder() {
+                    const order = {
+                        lessons: this.cartLessons,
+                        totalAmount: this.cartLessons.reduce(
+                            (total, lesson) => total + lesson.Price * lesson.quantity,
+                            0
+                        ),
+                        orderDate: new Date(),
+                        // You can add more fields, such as user info, shipping address, etc.
+                    };
+    
+                    try {
+                        const response = await fetch("http://localhost:3000/api/order", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ order }),
+                        });
+    
+                        const data = await response.json();
+                        console.log("Order placed:", data);
+                        if (response.ok) {
+                            alert("Order placed successfully!");
+                            this.cartLessons = []; // Clear the cart after successful order
+                        } else {
+                            alert("Error placing order. Please try again.");
+                        }
+                    } catch (error) {
+                        console.error("Error submitting order:", error);
+                        alert("Error submitting order. Please try again.");
+                    }
                 },
             },
-        });
-
-        cartApp.mount('#app');
+            created() {
+                this.fetchLessons();
+            },
+        }).mount("#app");
     </script>
+    
 </body>
 </html>
-{ id: 1, picture: './img/Maths.jpg', Subject: 'Maths', Location: 'Manchester', Price: '£100', Available: 5 },
-                { id: 2, picture: './img/English.jpg', Subject: 'English', Location: 'Manchester', Price: '£130', Available: 7 },
-                { id: 3, picture: './img/Geography.jpg', Subject: 'Geography', Location: 'Edgware', Price: '£10', Available: 10 },
-                { id: 4, picture: './img/Science.jpg', Subject: 'Science', Location: 'Cricklewood', Price: '£120', Available: 8 },
-                { id: 5, picture: './img/Art.jpg', Subject: 'Art', Location: 'Tottenham', Price: '£20', Available: 12 },
-                { id: 6, picture: './img/Geography.jpg', Subject: 'Math', Location: 'Nottingham', Price: '£107', Available: 6 },
-                { id: 7, picture: './img/P.E.jpg', Subject: 'P.E', Location: 'Liverpool', Price: '£130', Available: 9 },
-                { id: 8, picture: './img/COMPUTING.jpg', Subject: 'Computing', Location: 'Bradford', Price: '£110', Available: 19 },
-                { id: 9, picture: './img/hisory.jpg', Subject: 'History', Location: 'Coventry', Price: '£102', Available: 20 },
-            ],

@@ -13,6 +13,20 @@ body {
     line-height: 1.6;
 }
 
+.search-bar {
+    padding: 8px;
+    width: 300px;
+    margin: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-right: 40%;
+}
+
+.search-bar:focus {
+    border-color: #2a9d8f;
+    outline: none;
+}
 /* Header and Logo */
 #name {
     color: rgba(120, 33, 178, 1);
@@ -50,7 +64,7 @@ body {
     flex-direction: column;
     align-items: center;
     background-color: white;
-    border: 2px solid rgba(200, 125, 54, 0.5);
+   
     border-radius: 15px;
     width: 200px;
     padding: 15px;
@@ -119,7 +133,7 @@ body {
 /* Sort and Filter */
 .filter, .sort-toggle {
     background-color: white;
-    border: 2px solid rgba(200, 125, 54, 1);
+ 
     border-radius: 8px;
     padding: 8px 15px;
     cursor: pointer;
@@ -142,6 +156,7 @@ body {
     justify-content: center;
     margin: 20px 0;
     gap: 10px;
+    margin-left:40% ;
 }
 
 .search-input {
@@ -202,4 +217,261 @@ body {
 
 #button:hover:not(:disabled) {
     background-color: #1e7d73;
+}
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-top: 20px;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px;
+}
+
+.lesson {
+    border: 1px solid #ddd;
+    padding: 10px;
+    width: 250px;
+    text-align: center;
+    border-radius: 8px;
+}
+
+.lesson-img {
+    max-width: 100%;
+    height: auto;
+}
+
+button {
+    background-color: #2a9d8f;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
+}
+
+.cart-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.back-button {
+    background-color: #555;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.error-message {
+    color: red;
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+    .cart-button, .back-button {
+        position: static;
+        margin: 10px 0;
+    }
+    body {
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 2rem;
+        margin-top: 20px;
+    }
+
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        margin: 20px;
+    }
+
+    .lesson {
+        border: 1px solid #ddd;
+        padding: 10px;
+        width: 250px;
+        text-align: center;
+        border-radius: 8px;
+    }
+
+    .lesson-img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    button {
+        background-color: #2a9d8f;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:disabled {
+        background-color: #ddd;
+        cursor: not-allowed;
+    }
+
+    .cart-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    .back-button {
+        background-color: #555;
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 12px;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cart-button, .back-button {
+            position: static;
+            margin: 10px 0;
+        }
+    }
+    body {
+        font-family: 'Poppins', sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 2rem;
+        margin-top: 20px;
+    }
+
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+        margin: 20px;
+    }
+
+    .lesson {
+        border: 1px solid #ddd;
+        padding: 10px;
+        width: 250px;
+        text-align: center;
+        border-radius: 8px;
+    }
+
+    .lesson-img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    button {
+        background-color: #2a9d8f;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    button:disabled {
+        background-color: #ddd;
+        cursor: not-allowed;
+    }
+
+    .cart-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    .back-button {
+        background-color: #555;
+        color: white;
+        margin-bottom: 20px;
+    }
+
+    .error-message {
+        color: red;
+        font-size: 12px;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cart-button, .back-button {
+            position: static;
+            margin: 10px 0;
+        }
+
+    }
+
+.input-field {
+width: 60%;
+padding: 20px 10px;
+margin: 10px 10;
+border: 1px solid #ccc;
+border-radius: 5px;
+font-size: 16px;
+box-sizing: border-box;
+}
+
+.input-field:focus {
+border-color: #2a9d8f;
+outline: none;
+box-shadow: 0 0 5px rgba(42, 157, 143, 0.5);
+}
+.search-input {
+padding: 10px;
+font-size: 16px;
+border: 2px solid #ccc;
+border-radius: 20px;
+width: 300px;
+outline: none;
+transition: border-color 0.3s;
 }

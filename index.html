@@ -4,110 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Page</title>
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inria+Serif:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
-
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 2rem;
-            margin-top: 20px;
-        }
-
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin: 20px;
-        }
-
-        .lesson {
-            border: 1px solid #ddd;
-            padding: 10px;
-            width: 250px;
-            text-align: center;
-            border-radius: 8px;
-        }
-
-        .lesson-img {
-            max-width: 100%;
-            height: auto;
-        }
-
-        button {
-            background-color: #2a9d8f;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        button:disabled {
-            background-color: #ddd;
-            cursor: not-allowed;
-        }
-
-        .empty-cart {
-            text-align: center;
-            font-size: 18px;
-            color: #555;
-        }
-
-        .cart-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-
-        .back-button {
-            background-color: #555;
-            color: white;
-            margin-bottom: 20px;
-        }
-    </style>
 </head>
 <body id="app">
     <div>
-        <!-- Header with toggle buttons -->
         <div v-if="showHeader">
-            <h1>
-             <!--   <img src="img/logo.png" alt="Logo" class="logo">-->
-                HOLLAND PARK PRIMARY SCHOOL
-            </h1>
+            <h1>HOLLAND PARK PRIMARY SCHOOL</h1>
             <select class="filter" v-model="selectedFilter">
                 <option value="option2">Subject</option>
                 <option value="option3">Location</option>
                 <option value="option4">Price</option>
                 <option value="option5">Available</option>
             </select>
+
             <button @click="toggleSortDirection" class="sort-toggle">
                 Sort: {{ sortDirection === 'asc' ? 'Ascending' : 'Descending' }}
             </button>
-            <button @click="togglePage('cart')" :disabled="cartLessons.length === 0" class="cart-button">
-              <!--  <img src="img/cart.png" alt="Cart Icon" class="icon"> -->
-                <span>Cart</span>
+
+            <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="Search for lessons..." 
+                class="search-bar"
+            />
+
+            <button 
+                @click="togglePage(currentPage === 'shop' ? 'cart' : 'shop')" 
+                :disabled="cartLessons.length === 0 && currentPage === 'shop'" 
+                class="cart-button">
+                Cart ({{ cartItemCount }})
             </button>
         </div>
 
-        <!-- Shop Page -->
         <div v-if="currentPage === 'shop'">
             <div class="container">
-                <div v-for="lesson in filteredLessons" :key="lesson.id" class="lesson">
+                <div v-for="lesson in filteredLessons" :key="lesson._id" class="lesson">
                     <img :src="lesson.picture" alt="Lesson Image" class="lesson-img">
                     <p>Subject: {{ lesson.Subject }}</p>
                     <p>Location: {{ lesson.Location }}</p>
-                    <p>Price: {{ lesson.Price }}</p>
+                    <p>Price: £{{ lesson.Price }}</p>
                     <p>Available: {{ lesson.Available }}</p>
                     <button 
                         @click="addLessonToCart(lesson)" 
@@ -118,24 +56,40 @@
             </div>
         </div>
 
-        <!-- Cart Page -->
-        <div v-if="currentPage === 'cart'">
+        <div v-if="currentPage === 'cart'" class="cart-page">
             <h1>Shopping Cart</h1>
-            <button @click="togglePage('shop')" class="back-button">Back to Shop</button>
             <div v-if="cartLessons.length > 0">
-                <div v-for="(lesson,lessons) in cartLessons" :key="lesson.id" class="lesson">
+                <div v-for="(lesson, index) in cartLessons" :key="lesson._id" class="lesson">
                     <img :src="lesson.picture" alt="Lesson Image" class="lesson-img">
                     <p>Subject: {{ lesson.Subject }}</p>
                     <p>Location: {{ lesson.Location }}</p>
-                    <p>Price: #{{ lesson.Price }}</p>
+                    <p>Price: £{{ lesson.Price }}</p>
                     <p>Quantity: {{ lesson.quantity }}</p>
                     <button @click="removeFromCart(index)">Remove</button>
                 </div>
             </div>
-            <button @click="submitOrder" :disabled="cartLessons.length === 0">Submit Order</button>
-            <div v-else class="empty-cart">
-                Your cart is empty.
+            <div id="labels">
+                <input 
+                    type="text" 
+                    v-model="name" 
+                    @input="validateName" 
+                    placeholder="Enter your Name"
+                    class="input-field">
+                <p v-if="nameError" class="error-message">Please enter a valid name (letters only).</p>
+
+                <input 
+                    type="text" 
+                    v-model="phone" 
+                    @input="validatePhone" 
+                    placeholder="Enter your Phone number"
+                    class="input-field">
+                <p v-if="phoneError" class="error-message">Please enter a valid phone number (10 digits only).</p>
             </div>
+            <button 
+                @click="submitOrder" 
+                :disabled="!name || !phone || nameError || phoneError">
+                Submit Order
+            </button>
         </div>
     </div>
 
@@ -143,113 +97,100 @@
         Vue.createApp({
             data() {
                 return {
-                    lessons: [], // Holds the lessons data fetched from the server
-                    cartLessons: [], // Lessons added to the cart
-                    selectedFilter: "option2", // Default filter selection
-                    sortDirection: "asc", // Sort direction: ascending or descending
-                    currentPage: "shop", // Tracks current page ('shop' or 'cart')
-                    showHeader: true, // Show or hide header
+                    lessons: [],
+                    cartLessons: [],
+                    selectedFilter: "option2",
+                    sortDirection: "asc",
+                    currentPage: "shop",
+                    showHeader: true,
+                    name: "",
+                    phone: "",
+                    nameError: false,
+                    phoneError: false,
+                    searchQuery: "",
                 };
             },
             computed: {
                 filteredLessons() {
                     let sortedLessons = [...this.lessons];
-    
-                    if (this.selectedFilter === "option2") {
-                        sortedLessons.sort((a, b) =>
-                            this.sortDirection === "asc"
-                                ? a.Subject.localeCompare(b.Subject)
-                                : b.Subject.localeCompare(a.Subject)
-                        );
-                    } else if (this.selectedFilter === "option3") {
-                        sortedLessons.sort((a, b) =>
-                            this.sortDirection === "asc"
-                                ? a.Location.localeCompare(b.Location)
-                                : b.Location.localeCompare(a.Location)
-                        );
-                    } else if (this.selectedFilter === "option4") {
-                        sortedLessons.sort((a, b) =>
-                            this.sortDirection === "asc" ? a.Price - b.Price : b.Price - a.Price
-                        );
-                    } else if (this.selectedFilter === "option5") {
-                        sortedLessons.sort((a, b) =>
-                            this.sortDirection === "asc" ? a.Available - b.Available : b.Available - a.Available
-                        );
-                    }
-                    console.log(sortedLessons);
-                    return sortedLessons;
+                    const sortBy = {
+                        option2: "Subject",
+                        option3: "Location",
+                        option4: "Price",
+                        option5: "Available"
+                    }[this.selectedFilter];
+
+                    sortedLessons.sort((a, b) =>
+                        this.sortDirection === "asc"
+                            ? (a[sortBy] > b[sortBy] ? 1 : -1)
+                            : (a[sortBy] < b[sortBy] ? 1 : -1)
+                    );
+
+                    return sortedLessons.filter(lesson =>
+                        lesson.Subject.toLowerCase().includes(this.searchQuery.toLowerCase())
+                    );
+                },
+                cartItemCount() {
+                    return this.cartLessons.reduce((total, lesson) => total + lesson.quantity, 0);
                 },
             },
             methods: {
+                addLessonToCart(lesson) {
+                    const existingItem = this.cartLessons.find((item) => item._id === lesson._id);
+                    if (existingItem) {
+                        existingItem.quantity++;
+                    } else {
+                        this.cartLessons.push({ ...lesson, quantity: 1 });
+                    }
+                    lesson.Available--;
+                },
+                removeFromCart(index) {
+                    const lesson = this.cartLessons[index];
+                    this.cartLessons.splice(index, 1);
+                    const originalLesson = this.lessons.find((item) => item._id === lesson._id);
+                    if (originalLesson) originalLesson.Available += lesson.quantity;
+                },
+                toggleSortDirection() {
+                    this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
+                },
+                togglePage(page) {
+                    this.currentPage = page;
+                },
+                validateName() {
+                    this.nameError = !/^[A-Za-z\s]+$/.test(this.name);
+                },
+                validatePhone() {
+                    this.phoneError = !/^\d{10}$/.test(this.phone);
+                },
                 async fetchLessons() {
                     try {
-                        const response = await fetch("http://localhost:3000/api/lessons");
-                        const data = await response.json();
-                        console.log("Fetched Lessons:", data); // Check if data is received
-                        this.lessons = data;
+                        const response = await fetch("https://back-end-ugui.onrender.com/api/lessons");
+                        if (!response.ok) throw new Error("Failed to fetch lessons");
+                        this.lessons = await response.json();
                     } catch (error) {
                         console.error("Error fetching lessons:", error);
                     }
                 },
-    
-                addLessonToCart(lesson) {
-                    const existingItem = this.cartLessons.find((item) => item.id === lesson.id);
-                    if (existingItem) {
-                        existingItem.quantity += 1;
-                    } else {
-                        this.cartLessons.push({ ...lesson, quantity: 1 });
-                    }
-                    lesson.Available -= 1;
-                },
-    
-                removeFromCart(index) {
-                    const lesson = this.cartLessons[index];
-                    this.cartLessons.splice(index, 1);
-                    const originalLesson = this.lessons.find((item) => item.id === lesson.id);
-                    if (originalLesson) {
-                        originalLesson.Available += lesson.quantity;
-                    }
-                },
-    
-                toggleSortDirection() {
-                    this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
-                },
-    
-                togglePage(page) {
-                    this.currentPage = page;
-                },
-    
                 async submitOrder() {
                     const order = {
                         lessons: this.cartLessons,
                         totalAmount: this.cartLessons.reduce(
-                            (total, lesson) => total + lesson.Price * lesson.quantity,
-                            0
+                            (total, lesson) => total + lesson.Price * lesson.quantity, 0
                         ),
                         orderDate: new Date(),
-                        // You can add more fields, such as user info, shipping address, etc.
                     };
-    
                     try {
-                        const response = await fetch("http://localhost:3000/api/order", {
+                        const response = await fetch("https://back-end-ugui.onrender.com/api/order", {
                             method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
+                            headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ order }),
                         });
-    
-                        const data = await response.json();
-                        console.log("Order placed:", data);
-                        if (response.ok) {
-                            alert("Order placed successfully!");
-                            this.cartLessons = []; // Clear the cart after successful order
-                        } else {
-                            alert("Error placing order. Please try again.");
-                        }
+                        if (!response.ok) throw new Error("Error placing order");
+                        alert("Order placed successfully!");
+                        this.cartLessons = [];
                     } catch (error) {
-                        console.error("Error submitting order:", error);
-                        alert("Error submitting order. Please try again.");
+                        console.error("Error placing order:", error);
+                        alert("Failed to place order.");
                     }
                 },
             },
@@ -258,6 +199,5 @@
             },
         }).mount("#app");
     </script>
-    
 </body>
 </html>
