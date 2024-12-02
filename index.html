@@ -247,7 +247,7 @@ methods: {
         const query = this.searchQuery.trim();
         const url = query ? 
             `https://back-end-ugui.onrender.com/search?query=${query}` 
-            : `https://back-end-ugui.onrender.com/api/lessons`; // Use local server URL
+            : `https://back-end-ugui.onrender.com/api/lessons`; // Use local server URL 
 
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch search results");
