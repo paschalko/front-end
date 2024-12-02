@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -245,8 +246,8 @@ methods: {
     try {
         const query = this.searchQuery.trim();
         const url = query ? 
-            `http://localhost:3000/search?query=${query}` 
-            : `http://localhost:3000/api/lessons`; // Use local server URL
+            `https://back-end-ugui.onrender.com/search?query=${query}` 
+            : `https://back-end-ugui.onrender.com/api/lessons`; // Use local server URL
 
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch search results");
