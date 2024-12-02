@@ -114,14 +114,11 @@
                 };
             },
 
-            
             computed: {
-                cartItemCount() {
-        // Calculate the total number of items in the cart
+    cartItemCount() {
         return this.cartLessons.reduce((total, lesson) => total + lesson.quantity, 0);
     },
     filteredLessons() {
-        // Filter and sort logic for lessons (already provided in your code)
         let sortedLessons = [...this.lessons];
         const sortBy = {
             option2: "Subject",
@@ -246,22 +243,21 @@ methods: {
                 },
                 async fetchLessons() {
     try {
-        // Only search if there's a query, otherwise fetch all lessons
         const query = this.searchQuery.trim();
         const url = query ? 
-            `https://back-end-ugui.onrender.com/search?query=${query}` :
-            `https://back-end-ugui.onrender.com/api/lessons`; 
+            `http://localhost:3000/search?query=${query}` 
+            : `http://localhost:3000/api/lessons`; // Use local server URL
 
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch search results");
 
-        // If the response is empty, keep the existing lessons or set it to an empty array
         const lessonsData = await response.json();
         this.lessons = lessonsData.length ? lessonsData : [];
     } catch (error) {
         console.error("Error fetching lessons:", error);
     }
 },
+
 
                 async submitOrder() {
                     const order = {
